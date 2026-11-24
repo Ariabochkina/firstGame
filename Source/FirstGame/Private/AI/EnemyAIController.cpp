@@ -43,6 +43,18 @@ void AEnemyAIController::OnPossess(APawn* InPawn)
 		return;
 	}
 
+	if (UAIPerceptionComponent* Perception = GetPerceptionComponent())
+	{
+		if (UAISenseConfig_Sight* Sight = Cast<UAISenseConfig_Sight>(
+				Perception->GetSenseConfig(UAISense::GetSenseID<UAISense_Sight>())))
+		{
+			Sight->SightRadius = Enemy->SightRadius;
+			Sight->LoseSightRadius = FMath::Max(Enemy->LoseSightRadius, Enemy->SightRadius);
+			Sight->PeripheralVisionAngleDegrees = Enemy->SightAngleDegrees;
+			Perception->ConfigureSense(*Sight);
+		}
+	}
+
 	if (!RunBehaviorTree(Enemy->BehaviorTree))
 	{
 		return;
@@ -68,7 +80,12 @@ void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus St
 		return;
 	}
 
-	BlackboardComp->SetValueAsObject(
-		AIBlackboard::TargetActor,
-		Stimulus.WasSuccessfullySensed() ? Actor : nullptr);
+	if (Stimulus.WasSuccessfullySensed())
+	{
+		BlackboardComp->SetValueAsObject(AIBlackboard::TargetActor, Actor);
+	}
+	else
+	{
+		BlackboardComp->ClearValue(AIBlackboard::TargetActor);
+	}
 }

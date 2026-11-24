@@ -26,12 +26,16 @@ AEnemyCharacter::AEnemyCharacter()
 	StateText->SetWorldSize(56.0f);
 	StateText->SetTextRenderColor(FColor::Yellow);
 	StateText->SetText(FText::GetEmpty());
+	StateText->SetHiddenInGame(true);
 }
 
 void AEnemyCharacter::SetStateText(const FString& Text)
 {
-	if (StateText)
+	if (!StateText)
 	{
-		StateText->SetText(FText::FromString(Text));
+		return;
 	}
+
+	StateText->SetText(FText::FromString(Text));
+	StateText->SetHiddenInGame(!bShowStateText || Text.IsEmpty());
 }
