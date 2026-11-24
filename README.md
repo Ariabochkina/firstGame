@@ -49,7 +49,7 @@ Unreal Engine 5.8. Проект на основе шаблона Third Person, �
 
 ### ИИ
 
-- C++ `AEnemyCharacter` + `AEnemyAIController` (`AAIController`). Контроллер только пишет факты в Blackboard (зрение -> `TargetActor`), решения принимает Behavior Tree - не в обход дерева.
+- C++ `AEnemyCharacter` + `AEnemyAIController` (`AAIController`). Контроллер только пишет факты в Blackboard (зрение -> `TargetActor`), решения принимает Behavior Tree.
 - Ассеты: `Content/AI/BB_Enemy`, `BT_Enemy`, `BP_Enemy`. На уровне стоят несколько `BP_Enemy`.
 - Дерево (приоритет слева направо):
   1. **Chase** - если задан `TargetActor`: быстрее идёт к игроку (`Move To`).
