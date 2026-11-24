@@ -18,9 +18,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector SuspectActorKey;
 
-	UPROPERTY(EditAnywhere, Category = "Debug")
-	bool bDrawDebug = false;
-
 protected:
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 };

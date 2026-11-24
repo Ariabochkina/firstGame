@@ -43,7 +43,7 @@ public:
 	TObjectPtr<UTextRenderComponent> StateText;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
-	bool bShowStateText = false;
+	bool bShowStateText = true;
 
 	void SetStateText(const FString& Text);
 };

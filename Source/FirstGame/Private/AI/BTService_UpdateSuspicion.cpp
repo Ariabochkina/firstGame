@@ -4,7 +4,6 @@
 #include "AI/EnemyCharacter.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
 
 UBTService_UpdateSuspicion::UBTService_UpdateSuspicion()
@@ -64,10 +63,5 @@ void UBTService_UpdateSuspicion::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 		{
 			Enemy->SetStateText(TEXT(""));
 		}
-	}
-
-	if (bDrawDebug)
-	{
-		DrawDebugSphere(Self->GetWorld(), Self->GetActorLocation(), Range, 32, FColor::Yellow, false, Interval);
 	}
 }
