@@ -3,7 +3,10 @@
 #include "AI/AIBlackboardKeys.h"
 #include "AI/EnemyCharacter.h"
 #include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "NavigationSystem.h"
+#include "TimerManager.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISense_Sight.h"
@@ -55,14 +58,56 @@ void AEnemyAIController::OnPossess(APawn* InPawn)
 		}
 	}
 
-	if (!RunBehaviorTree(Enemy->BehaviorTree))
+	FVector Home = Enemy->GetActorLocation();
+	if (UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld()))
+	{
+		FNavLocation Projected;
+		if (NavSys->ProjectPointToNavigation(Home, Projected))
+		{
+			Home = Projected.Location;
+		}
+	}
+
+	UBlackboardComponent* BlackboardComp = nullptr;
+	if (UseBlackboard(Enemy->BehaviorTree->GetBlackboardAsset(), BlackboardComp) && BlackboardComp)
+	{
+		BlackboardComp->SetValueAsVector(AIBlackboard::HomeLocation, Home);
+	}
+
+	RunBehaviorTree(Enemy->BehaviorTree);
+	TryPrimePatrol();
+}
+
+void AEnemyAIController::TryPrimePatrol()
+{
+	APawn* ControlledPawn = GetPawn();
+	UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
+	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+	if (!ControlledPawn || !BlackboardComp || !NavSys)
 	{
 		return;
 	}
 
-	if (UBlackboardComponent* BlackboardComp = GetBlackboardComponent())
+	const FVector Origin = ControlledPawn->GetActorLocation();
+	FNavLocation Point;
+	const bool bFound = NavSys->GetRandomReachablePointInRadius(Origin, 800.0f, Point)
+		|| NavSys->ProjectPointToNavigation(Origin, Point, FVector(1000.0f, 1000.0f, 1000.0f));
+
+	if (!bFound)
 	{
-		BlackboardComp->SetValueAsVector(AIBlackboard::HomeLocation, Enemy->GetActorLocation());
+		if (++PatrolPrimeAttempts < 20)
+		{
+			GetWorldTimerManager().SetTimer(PatrolPrimeTimer, this, &AEnemyAIController::TryPrimePatrol, 0.25f, false);
+		}
+		return;
+	}
+
+	BlackboardComp->SetValueAsVector(AIBlackboard::HomeLocation, Point.Location);
+	BlackboardComp->SetValueAsVector(AIBlackboard::MoveLocation, Point.Location);
+
+	if (UBehaviorTreeComponent* BehaviorTreeComp = Cast<UBehaviorTreeComponent>(BrainComponent))
+	{
+		BehaviorTreeComp->RestartTree();
 	}
 }
 

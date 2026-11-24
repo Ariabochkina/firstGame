@@ -18,4 +18,9 @@ protected:
 
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+
+	void TryPrimePatrol();
+
+	FTimerHandle PatrolPrimeTimer;
+	int32 PatrolPrimeAttempts = 0;
 };

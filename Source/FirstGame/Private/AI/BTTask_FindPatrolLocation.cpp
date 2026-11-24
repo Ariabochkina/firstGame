@@ -18,17 +18,31 @@ EBTNodeResult::Type UBTTask_FindPatrolLocation::ExecuteTask(UBehaviorTreeCompone
 {
 	AAIController* Controller = OwnerComp.GetAIOwner();
 	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
+	APawn* Pawn = Controller ? Controller->GetPawn() : nullptr;
 	UNavigationSystemV1* NavSys = Controller ? UNavigationSystemV1::GetCurrent(Controller->GetWorld()) : nullptr;
-	if (!Controller || !BlackboardComp || !NavSys)
+	if (!Controller || !BlackboardComp || !NavSys || !Pawn)
 	{
 		return EBTNodeResult::Failed;
 	}
 
-	const FVector Origin = BlackboardComp->GetValueAsVector(HomeLocationKey.SelectedKeyName);
+	FVector Origin = BlackboardComp->GetValueAsVector(HomeLocationKey.SelectedKeyName);
+	FNavLocation Projected;
+	if (NavSys->ProjectPointToNavigation(Origin, Projected))
+	{
+		Origin = Projected.Location;
+	}
+	else if (NavSys->ProjectPointToNavigation(Pawn->GetActorLocation(), Projected))
+	{
+		Origin = Projected.Location;
+	}
+
 	FNavLocation Result;
 	if (!NavSys->GetRandomReachablePointInRadius(Origin, PatrolRadius, Result))
 	{
-		return EBTNodeResult::Failed;
+		if (!NavSys->GetRandomReachablePointInRadius(Pawn->GetActorLocation(), PatrolRadius, Result))
+		{
+			return EBTNodeResult::Failed;
+		}
 	}
 
 	BlackboardComp->SetValueAsVector(MoveLocationKey.SelectedKeyName, Result.Location);
